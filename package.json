@@ -1,0 +1,16 @@
+{
+  "name": "ascii-wallpapers",
+  "private": true,
+  "type": "module",
+  "description": "ascii.rest pieces as Hidamari live wallpapers",
+  "license": "MIT",
+  "bin": {
+    "asciiwall": "asciiwall.mjs"
+  },
+  "dependencies": {
+    "ascii.rest": "github:bas3line/ascii"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
