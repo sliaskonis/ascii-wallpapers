@@ -5,7 +5,7 @@
   </picture>
 </p>
 
-Use [ascii.rest](https://github.com/bas3line/ascii) pieces as live wallpapers in [Hidamari](https://github.com/jeffshee/hidamari), on Linux. This folder holds `asciiwall`, a command that turns any piece from ascii.rest into a wallpaper (including the pieces you make). `npm install` brings the library from ascii.rest's GitHub, and `asciiwall update` brings its new pieces as they come.
+Use [ascii.rest](https://github.com/bas3line/ascii) pieces as live wallpapers in [Hidamari](https://github.com/jeffshee/hidamari), on Linux. This repo holds `asciiwall`, a command that turns any piece from ascii.rest into a wallpaper (including the pieces you make). `npm install` brings the library from ascii.rest's GitHub, and `asciiwall update` brings its new pieces as they come.
 
 <p align="center">
   <img src="docs/demo.gif" width="800" alt="tokyo-rain, kyoto-dusk, volcano-night and deep-reef, each the wallpaper in turn on a GNOME desktop">
@@ -126,6 +126,22 @@ npm install --no-save ../ascii
 ```
 
 `asciiwall update` then leaves it to you: `git pull && npm install` in the clone, then `asciiwall build`.
+
+## Uninstall
+
+With **Static wallpaper** on, GNOME's background is a still in `~/.local/share/asciiwall/`, so put your own back before that folder goes: turn Static wallpaper off in Hidamari, and with Hidamari running, set any piece once.
+
+```sh
+asciiwall set tokyo-rain      # with Static wallpaper off, the background you had before is back
+```
+
+Then choose another wallpaper in Hidamari, or close it, and remove asciiwall and what it made:
+
+```sh
+rm ~/.local/bin/asciiwall                                 # or wherever you linked it
+rm -r ~/Videos/Hidamari/ascii ~/.local/share/asciiwall
+rm -r ascii-wallpapers                                    # this repo's clone
+```
 
 ## Credits
 
