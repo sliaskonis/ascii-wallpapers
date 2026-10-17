@@ -20,6 +20,7 @@ asciiwall set big-text --opts '{"text":"hello"}'
 asciiwall dev ocean               # one of your own: set again each time you save it
 asciiwall build                   # rebuilds every wallpaper file, or the ones named
 asciiwall update                  # the library's new pieces, and every wallpaper file again
+asciiwall image photo.jpg         # a picture as a piece of your own, in my/
 asciiwall --help                  # the commands and flags
 ```
 
@@ -35,7 +36,7 @@ cd ascii-wallpapers && npm install
 ln -s "$PWD/asciiwall.mjs" ~/.local/bin/asciiwall    # or any folder on your PATH
 ```
 
-The still for GNOME's overview, [below](#the-overview-and-the-lock-screen), takes `ffmpeg`, `xwininfo` and `xwd` as well: on Ubuntu, `sudo apt install ffmpeg x11-utils x11-apps`. Without them the wallpaper plays all the same, and the overview keeps GNOME's background.
+The still for GNOME's overview, [below](#the-overview-and-the-lock-screen), takes `ffmpeg`, `xwininfo` and `xwd` as well: on Ubuntu, `sudo apt install ffmpeg x11-utils x11-apps`. Without them the wallpaper plays all the same, and the overview keeps GNOME's background. `asciiwall image` reads pictures with `ffmpeg` too.
 
 ## Pick one
 
@@ -108,6 +109,30 @@ Where to read on:
 - [ascii.rest/make](https://ascii.rest/make/) turns a picture or a logo of yours into a piece file, in the browser.
 
 The library's own terminal player, `npx ascii.rest play my/ocean.ts --watch`, needs Node 22.18 or later to run a `.ts` file; `asciiwall` builds it first, so it runs on Node 20.
+
+### From a picture
+
+`asciiwall image` makes a piece of your own from a picture: PNG, JPEG, WebP, GIF, AVIF, JPEG XL, TIFF, BMP, SVG or anything else `ffmpeg` reads.
+
+```sh
+asciiwall image ~/Pictures/harbour.jpg            # writes my/harbour.ts
+asciiwall set harbour
+asciiwall image ~/Downloads/page.png panel --invert --blur 1.5
+```
+
+The picture is softened first, so hatching, screentone and noise don't average out to a flat grey. Each character is then picked by the picture's tone there, denser where it is brighter, or is a stroke `| / - \` where the outline of a shape runs through it; its colour is the nearest of the picture's few colours, or a grey. The flags in `asciiwall --help` change how:
+
+| flag | what it changes |
+| --- | --- |
+| `--cols 320` | detail: more characters across, each smaller. 240 by default |
+| `--blur 1.5` | softening: more for drawings and scans, 0 for the finest detail. 0.75 by default |
+| `--edges 12` | outline strokes, as a percent of the characters. 7 by default, 0 for none |
+| `--colors 3` | how many colours, 1 for greys. Unasked: 6, or greys for a picture with hardly any colour |
+| `--invert` | a negative, for a dark drawing on a light page, such as a manga page |
+
+To try settings with the result on your desktop, run `asciiwall dev harbour` in one terminal and `asciiwall image ~/Pictures/harbour.jpg --force --blur 2` and the like in another: each run shows as it is written.
+
+The piece is a still. Its code is at the top of the file and the picture at the bottom, so you can change it as you would any piece of yours. To make it move, change each character's tone by the time; the file shows how, with a band of light to uncomment. The file holds the picture, so if the picture is someone else's art, keep the file out of git with `echo my/harbour.ts >> .git/info/exclude`.
 
 ## Updating the library
 

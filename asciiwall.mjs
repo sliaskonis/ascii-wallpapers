@@ -11,6 +11,7 @@
  *   asciiwall set tokyo-rain
  *   asciiwall set donut --fit 0.5 --fg f97316
  *   asciiwall dev ocean
+ *   asciiwall image ~/Pictures/harbour.jpg
  */
 import { context, build as bundle } from "esbuild";
 import { spawnSync } from "node:child_process";
@@ -44,6 +45,9 @@ const HELP = `asciiwall: ascii.rest pieces as Hidamari live wallpapers.
   asciiwall build [piece...]      writes the HTML files; all of them with no names
   asciiwall update                the library's newest pieces from GitHub, and every
                                   HTML file written again with them
+  asciiwall image <file> [name]   a picture as a piece of your own in my/, named
+                                  for the file unless named: png, jpg, webp, gif,
+                                  avif, svg or anything else ffmpeg reads
 
   set, dev and pick:
   --fit <how>       cover (fills the screen, cropping what overflows), contain
@@ -54,6 +58,19 @@ const HELP = `asciiwall: ascii.rest pieces as Hidamari live wallpapers.
   --bg <hex>        the colour behind it, like 0b0d10: the piece's ground by default
   --fg <hex>        the ink of a piece with no colours of its own, like c9d1d9
   --opts <json>     the piece's options: '{"text":"hello"}'
+
+  image:
+  --cols <n>        its width in characters: 240 by default, the height
+                    following the picture's shape. More for finer detail
+  --blur <n>        how much the picture is softened first, in characters: 0.75
+                    by default. More smooths away hatching, screentone and
+                    noise; 0 keeps the finest detail
+  --edges <n>       the share of characters, in percent, drawn as | / - \\ along
+                    the outlines of shapes: 7 by default, 0 for none
+  --colors <n>      how many colours it keeps, up to 10, 1 for greys: unasked,
+                    6, or greys for a picture with hardly any colour
+  --invert          a negative of it, for a dark drawing on a light page
+  --force           writes over a piece of yours with the same name
 
   A piece is a name from the list, or a file of your own in
   ${MINE}
@@ -274,6 +291,38 @@ async function update() {
   if (built.status !== 0) process.exit(built.status ?? 1);
 }
 
+/** A number from a flag, or its default when unasked; whole if `whole`, and from `min` to `max`. */
+function number(flag, value, fallback, min, max, whole = false) {
+  if (value === undefined) return fallback;
+  const n = +value;
+  if (!(value.trim() !== "" && n >= min && n <= max && (!whole || Number.isInteger(n)))) fail(`--${flag} takes ${whole ? "a whole number" : "a number"} from ${min} to ${max}, not ${value}`);
+  return n;
+}
+
+/** A picture as a piece of your own: my/<name>.ts, its name the file's unless given. */
+async function image(file, wanted, flags) {
+  if (!file) fail("image takes a picture: asciiwall image ~/Pictures/harbour.jpg");
+  if (!existsSync(file)) fail(`no file at ${file}`);
+  const name = (wanted ?? nameOf(file)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!name) fail(`give it a name of letters and digits: asciiwall image ${file} harbour`);
+  const there = mine().find((f) => nameOf(f) === name);
+  if (there && (!flags.force || extname(there) !== ".ts")) fail(`my/${there} is there already: give this another name${extname(there) === ".ts" ? ", or --force to write over it" : ""}`);
+  if (!there && names.includes(name) && !flags.force) fail(`ascii.rest has a piece called ${name}, and yours would play in its place: give yours another name, or --force`);
+  const settings = {
+    cols: number("cols", flags.cols, 240, 16, 480, true),
+    blur: number("blur", flags.blur, 0.75, 0, 10),
+    edges: number("edges", flags.edges, 7, 0, 100),
+    colors: number("colors", flags.colors, undefined, 1, 10, true),
+    invert: !!flags.invert,
+  };
+  const { picture } = await import("./image.mjs");
+  const made = picture(file, name, settings, fail);
+  mkdirSync(MINE, { recursive: true });
+  writeFileSync(join(MINE, `${name}.ts`), made.source);
+  console.log(`my/${name}.ts: ${made.cols} by ${made.rows}, in ${made.greys ? "greys" : `${made.colors} colour${made.colors === 1 ? "" : "s"}`}, ${made.outlined} characters of outline`);
+  console.log(`asciiwall set ${name} makes it the wallpaper; asciiwall dev ${name} shows it each time it changes`);
+}
+
 /** Every piece and the group it is listed under: yours first, then the library's by category. */
 async function catalog() {
   const own = mine().map(nameOf);
@@ -339,7 +388,20 @@ async function pick(flags) {
 try {
   const { values, positionals } = parseArgs({
     allowPositionals: true,
-    options: { fit: { type: "string" }, fps: { type: "string" }, bg: { type: "string" }, fg: { type: "string" }, opts: { type: "string" }, help: { type: "boolean", short: "h" } },
+    options: {
+      fit: { type: "string" },
+      fps: { type: "string" },
+      bg: { type: "string" },
+      fg: { type: "string" },
+      opts: { type: "string" },
+      cols: { type: "string" },
+      blur: { type: "string" },
+      edges: { type: "string" },
+      colors: { type: "string" },
+      invert: { type: "boolean" },
+      force: { type: "boolean" },
+      help: { type: "boolean", short: "h" },
+    },
   });
   const [command, ...rest] = positionals;
   if (values.help || !command) console.log(HELP);
@@ -349,6 +411,7 @@ try {
   else if (command === "dev") await dev(rest[0], values);
   else if (command === "build") await buildAll(rest);
   else if (command === "update") await update();
+  else if (command === "image") await image(rest[0], rest[1], values);
   else fail(`no command called ${command}: asciiwall --help lists them`);
 } catch (error) {
   if (!(error instanceof Fail) && error?.code !== "ERR_PARSE_ARGS_UNKNOWN_OPTION") throw error;
