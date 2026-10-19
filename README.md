@@ -8,8 +8,10 @@
 Use [ascii.rest](https://github.com/bas3line/ascii) pieces as live wallpapers in [Hidamari](https://github.com/jeffshee/hidamari), on Linux. This repo holds `asciiwall`, a command that turns any piece from ascii.rest into a wallpaper (including the pieces you make). `npm install` brings the library from ascii.rest's GitHub, and `asciiwall update` brings its new pieces as they come.
 
 <p align="center">
-  <img src="docs/demo.gif" width="800" alt="tokyo-rain, kyoto-dusk, volcano-night and deep-reef, each the wallpaper in turn on a GNOME desktop">
+  <img src="docs/demo.gif" width="49%" alt="tokyo-rain, kyoto-dusk, volcano-night and deep-reef, each the wallpaper in turn on a GNOME desktop">
+  <img src="docs/berserk.gif" width="49%" alt="A manga panel of a swordsman in a storm as grey ASCII characters, with slanting rain and lightning flashes, as the wallpaper on a GNOME desktop">
 </p>
+<p align="center"><sub>Left, four of the library's pieces. Right, a panel from Kentaro Miura's <i>Berserk</i>, made into a piece with <a href="#from-a-picture"><code>asciiwall image</code></a>, then given rain, a glint along the blade and lightning by hand.</sub></p>
 
 ```sh
 asciiwall pick                    # the list, each piece playing beside it: enter sets the one you are on
